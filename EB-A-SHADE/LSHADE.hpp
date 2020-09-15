@@ -76,13 +76,6 @@ void linearPopulationReduction(Population *pop, int currentAval);
 void alternativePopulationReduction(Population *pop, int currentAval);
 //JADE functions end
 
-//Crowding functions
-double euclideanDistance(Individual *ind1, Individual *ind2);
-double* nearestNeighbor(Population *pop, int trialIndex);
-void selectionCrowdingMin(Population *pop);
-void selectionNGMin(Population *pop, int g, double *avg);
-//Crowding functions end
-
 //Clean-up fuctions
 void destroyIndividual(Individual *ind);
 void destroyPopulation(Population *pop);

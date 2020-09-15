@@ -1,5 +1,8 @@
 #include"LSHADE.hpp"
 
+random_device rd;
+mt19937_64 mt(rd());
+
 //Main functions
 Population *initializePop(FILE *input){
     Population *pop = NULL;
@@ -27,8 +30,6 @@ Population *initializePop(FILE *input){
         pop->mfcp.push_back(0.5);
     }
     
-    random_device rd;
-    mt19937_64 mt(rd());
     uniform_real_distribution<double> dist(pop->li, pop->ui);
     
     
@@ -71,8 +72,6 @@ void trialPopulationFitness(Population *pop, double (*p) (Individual*, int)){
 
 void generateTrialPop(Population *pop){
     
-    random_device rd;
-    mt19937 mt(rd());
     uniform_int_distribution<int> dist_mut(0, pop->np - 1);
     uniform_int_distribution<unsigned int> dist_mut2(0, pop->np + pop->aux.size() - 1);
     uniform_int_distribution<int> dist_swap(0, pop->d - 1);
@@ -433,8 +432,6 @@ void adjustSettings(Population *pop){
     if((int)pop->aux.size() > (int)((pop->np)*(pop->rArc))){
         int n = pop->aux.size() - (int)((pop->np)*(pop->rArc));
         int index;
-        random_device rd;
-        mt19937 mt(rd());
         for(int i=0;i<n;i++){
             uniform_int_distribution<unsigned int> dist(0, pop->aux.size() - 1);
             index = dist(mt);
@@ -522,90 +519,6 @@ void alternativePopulationReduction(Population *pop, int currentAval){
     }
 }
 //JADE/SHADE functions end
-
-//Crowding functions
-double euclideanDistance(Individual *ind1, Individual *ind2){
-    double sum = 0.0;
-    unsigned int d = ind1->data.size();
-    
-    for(unsigned int i=0;i<d;i++){
-        sum += pow(ind1->data[i] - ind2->data[i], 2.0);
-    }
-    
-    return sqrt(sum);
-}
-
-double* nearestNeighbor(Population *pop, int trialIndex){
-    int index = 0;
-    double sDist = euclideanDistance(pop->trial[trialIndex], pop->ind[0]);
-    double dist;
-    double *ret;
-    
-    for(int i=1;i<pop->np;i++){
-        dist = euclideanDistance(pop->trial[trialIndex], pop->ind[i]);
-        if(dist < sDist){
-            index = i;
-            sDist = dist;
-        }
-    }
-    
-    ret = (double*)malloc(2*sizeof(double));
-    ret[0] = (double)index;
-    ret[1] = sDist;
-    
-    return ret;
-}
-
-void selectionCrowdingMin(Population *pop){
-    bool select, include;
-    double *neighbor = NULL;
-    int nIndex;
-    
-    ///*
-    double dif, prob, ps;
-    random_device rd;
-    mt19937 mt(rd());
-    uniform_real_distribution<double> dist_selec(0, 1);
-    //*/
-    
-    for(int i=0;i<pop->np;i++){
-        select = false;
-        include = false;
-        neighbor = nearestNeighbor(pop, i);
-        nIndex = (int)neighbor[0];
-        
-        if(pop->trial[i]->fit < pop->ind[nIndex]->fit){
-            select = true;
-            include = true;
-        }
-        ///*
-        else{
-            dif = fabs(pop->trial[i]->fit - pop->ind[nIndex]->fit);
-            prob = exp(-neighbor[1]/dif);
-            ps = dist_selec(mt);
-            if(ps <= prob){
-                select = true;
-            }
-        }
-        //*/
-        
-        if(select){
-            //Comment the next line to remove the archive
-            if(include){
-                copyIndividualToAux(pop, i);
-                pop->scr.push_back(pop->ind[i]->cr);
-                pop->sf.push_back(pop->ind[i]->f);
-            }
-            for(int j=0;j<pop->d;j++){
-                pop->ind[nIndex]->data[j] = pop->trial[i]->data[j];
-            }
-            pop->ind[nIndex]->fit = pop->trial[i]->fit;
-        }
-        
-        free(neighbor);
-    }
-}
-//Crowding functions end
 
 //Clean-up fuctions
 void destroyIndividual(Individual *ind){
